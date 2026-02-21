@@ -15,7 +15,6 @@ from zoneinfo import ZoneInfo
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SUBMISSIONS_DIR = REPO_ROOT / "submissions"
-RESULTS_FILE = None
 
 # Student IDs: PY102001001 .. PY102001020
 ID_PREFIX = "PY102001"
@@ -48,8 +47,6 @@ LAB_TO_TEST = {
     "lab06.py": "autograder/tests/test_lab06.py",
     "lab07.py": "autograder/tests/test_lab07.py",
 }
-
-GRADEBOOK_PATH = REPO_ROOT / "autograder" / "gradebook.csv"
 
 # Late policy
 GRACE_DAYS = 2
@@ -270,17 +267,11 @@ def main() -> None:
         print(" -", msg)
 
     print(f"FINAL SCORE: {final_score}/{max_points}")
-    write_header = not GRADEBOOK_PATH.exists()
+    results["final_score"] = final_score
+    results["submitted_at"] = submitted_at.isoformat() if submitted_at else None
+    results["late_messages"] = late_messages
 
-    with GRADEBOOK_PATH.open("a", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        if write_header:
-            writer.writerow(["student_id", "lab", "final_score", "max_points"
-                             , "submitted_at"])
-        for lab in sorted(labs_touched):
-            writer.writerow([student_id, lab, final_score, max_points,
-                             submitted_at.isoformat() if submitted_at else ""])
-
+    results_file.write_text(json.dumps(results, indent=2), encoding="utf-8")
     sys.exit(0)
 
 
